@@ -1,14 +1,30 @@
 import os
 import subprocess
+import json
 from Bio.PDB import PDBParser
 import numpy as np
+
+def get_tool_path(tool_key):
+    config_file = 'tool_config.json'
+    if os.path.exists(config_file):
+        try:
+            with open(config_file, 'r') as f:
+                config = json.load(f)
+                return config.get(tool_key)
+        except:
+            pass
+    return None
 
 def pdb_to_pdbqt(pdb_file, output_pdbqt):
     """
     使用OpenBabel将PDB文件转换为PDBQT格式
     """
     try:
-        cmd = f'obabel "{pdb_file}" -O "{output_pdbqt}" -xr'
+        obabel_path = get_tool_path('obabel')
+        if not obabel_path:
+            raise Exception("未找到OpenBabel路径，请在工具配置中设置")
+        
+        cmd = f'"{obabel_path}" "{pdb_file}" -O "{output_pdbqt}" -xr'
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         
         if result.returncode != 0:
